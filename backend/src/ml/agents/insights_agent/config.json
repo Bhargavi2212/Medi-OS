@@ -1,0 +1,24 @@
+{
+  "name": "InsightsAgent",
+  "description": "Data Analytics & Insights Agent",
+  "capabilities": [
+    "Patient trend analysis",
+    "Clinical outcome prediction",
+    "Resource utilization insights",
+    "Performance metrics analysis",
+    "Predictive analytics",
+    "Data visualization recommendations"
+  ],
+  "models": [
+    "trend_analyzer",
+    "outcome_predictor",
+    "utilization_analyzer",
+    "performance_analyzer"
+  ],
+  "data_sources": [
+    "patient_records",
+    "clinical_outcomes",
+    "resource_utilization",
+    "performance_metrics"
+  ]
+}

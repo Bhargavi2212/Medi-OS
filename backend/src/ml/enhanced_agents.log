@@ -1,0 +1,52 @@
+2025-07-13 13:54:33,545 - __main__ - INFO - Starting enhancement of all healthcare agents...
+2025-07-13 13:54:33,545 - __main__ - INFO - Enhancing make_agent...
+2025-07-13 13:54:33,545 - __main__ - INFO - Enhancing medical_qa for make_agent
+2025-07-13 13:54:33,545 - __main__ - INFO - Enhancing diagnosis_assistance for make_agent
+2025-07-13 13:54:33,545 - __main__ - INFO - Enhancing treatment_recommendations for make_agent
+2025-07-13 13:54:33,551 - __main__ - INFO - Training medical_qa_model for make_agent
+2025-07-13 13:54:33,553 - __main__ - ERROR - Failed to train model medical_qa_model for make_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,553 - __main__ - INFO - Training diagnosis_classifier for make_agent
+2025-07-13 13:54:33,553 - __main__ - ERROR - Failed to train model diagnosis_classifier for make_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,553 - __main__ - INFO - Training treatment_recommender for make_agent
+2025-07-13 13:54:33,555 - __main__ - ERROR - Failed to train model treatment_recommender for make_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,564 - __main__ - INFO - Enhancing manage_agent...
+2025-07-13 13:54:33,564 - __main__ - INFO - Enhancing resource_optimization for manage_agent
+2025-07-13 13:54:33,564 - __main__ - INFO - Enhancing staff_scheduling for manage_agent
+2025-07-13 13:54:33,564 - __main__ - INFO - Enhancing patient_flow for manage_agent
+2025-07-13 13:54:33,576 - __main__ - INFO - Training resource_optimizer for manage_agent
+2025-07-13 13:54:33,578 - __main__ - ERROR - Failed to train model resource_optimizer for manage_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,579 - __main__ - INFO - Training schedule_predictor for manage_agent
+2025-07-13 13:54:33,579 - __main__ - ERROR - Failed to train model schedule_predictor for manage_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,581 - __main__ - INFO - Training flow_analyzer for manage_agent
+2025-07-13 13:54:33,581 - __main__ - ERROR - Failed to train model flow_analyzer for manage_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,581 - __main__ - INFO - Enhancing insights_agent...
+2025-07-13 13:54:33,581 - __main__ - INFO - Enhancing pattern_analysis for insights_agent
+2025-07-13 13:54:33,581 - __main__ - INFO - Enhancing outcome_prediction for insights_agent
+2025-07-13 13:54:33,581 - __main__ - INFO - Enhancing risk_assessment for insights_agent
+2025-07-13 13:54:33,581 - __main__ - INFO - Training pattern_detector for insights_agent
+2025-07-13 13:54:33,586 - __main__ - ERROR - Failed to train model pattern_detector for insights_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,586 - __main__ - INFO - Training outcome_predictor for insights_agent
+2025-07-13 13:54:33,586 - __main__ - ERROR - Failed to train model outcome_predictor for insights_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,586 - __main__ - INFO - Training risk_classifier for insights_agent
+2025-07-13 13:54:33,588 - __main__ - ERROR - Failed to train model risk_classifier for insights_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,588 - __main__ - INFO - Enhancing integration_agent...
+2025-07-13 13:54:33,588 - __main__ - INFO - Enhancing data_integration for integration_agent
+2025-07-13 13:54:33,588 - __main__ - INFO - Enhancing system_interop for integration_agent
+2025-07-13 13:54:33,591 - __main__ - INFO - Enhancing workflow_automation for integration_agent
+2025-07-13 13:54:33,592 - __main__ - INFO - Training data_mapper for integration_agent
+2025-07-13 13:54:33,592 - __main__ - ERROR - Failed to train model data_mapper for integration_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,592 - __main__ - INFO - Training protocol_matcher for integration_agent
+2025-07-13 13:54:33,595 - __main__ - ERROR - Failed to train model protocol_matcher for integration_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,595 - __main__ - INFO - Training workflow_optimizer for integration_agent
+2025-07-13 13:54:33,595 - __main__ - ERROR - Failed to train model workflow_optimizer for integration_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,595 - __main__ - INFO - Enhancing market_agent...
+2025-07-13 13:54:33,595 - __main__ - INFO - Enhancing cost_analysis for market_agent
+2025-07-13 13:54:33,598 - __main__ - INFO - Enhancing efficiency_benchmarking for market_agent
+2025-07-13 13:54:33,598 - __main__ - INFO - Enhancing roi_calculation for market_agent
+2025-07-13 13:54:33,598 - __main__ - INFO - Training cost_predictor for market_agent
+2025-07-13 13:54:33,600 - __main__ - ERROR - Failed to train model cost_predictor for market_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,600 - __main__ - INFO - Training benchmark_analyzer for market_agent
+2025-07-13 13:54:33,600 - __main__ - ERROR - Failed to train model benchmark_analyzer for market_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,600 - __main__ - INFO - Training roi_calculator for market_agent
+2025-07-13 13:54:33,600 - __main__ - ERROR - Failed to train model roi_calculator for market_agent: Found input variables with inconsistent numbers of samples: [800, 200]
+2025-07-13 13:54:33,600 - __main__ - INFO - Agent enhancement completed in 0.05 seconds

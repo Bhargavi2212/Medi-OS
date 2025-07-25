@@ -1,0 +1,8 @@
+INFO:     Started server process [21624]
+INFO:     Waiting for application startup.
+2025-07-14 09:55:12,963 - INFO - Starting Healthcare-OS AI Server (Test Mode)...
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63598 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63621 - "GET /agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63623 - "POST /generate HTTP/1.1" 200 OK

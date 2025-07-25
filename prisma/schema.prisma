@@ -1,0 +1,702 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums (expanded with more values)
+enum RoleType {
+  SUPER_ADMIN
+  HOSPITAL_ADMIN
+  DOCTOR
+  NURSE
+  LAB_TECHNICIAN
+  RECEPTIONIST
+  PHARMACIST
+  PATIENT
+  CLEANING_STAFF
+  MAINTENANCE
+  SECURITY
+  ACCOUNTANT
+  RADIOLOGIST
+  DIETITIAN
+  OTHER
+}
+
+enum UrgencyLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  EMERGENCY // Added for level 5
+}
+
+enum DepartmentType {
+  EMERGENCY
+  CARDIOLOGY
+  NEUROLOGY
+  PEDIATRICS
+  GENERAL
+  MAINTENANCE
+  RADIOLOGY // Added for lab/imaging
+  NUTRITION // Added for dietitian
+}
+
+enum AppointmentStatus {
+  PENDING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum DocumentType {
+  REPORT
+  SCAN
+  PRESCRIPTION
+  LAB_RESULT
+  INSURANCE_CARD
+  OTHER
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  DENIED
+  PROCESSING
+}
+
+enum FeedbackType {
+  RATING
+  COMMENT
+  SUGGESTION
+}
+
+// User model (multi-role with RBAC, added salary/shift for staff)
+model User {
+  id               Int               @id @default(autoincrement())
+  email            String            @unique
+  password         String
+  role             RoleType
+  name             String
+  phone            String?
+  salary           Float? // For staff costs in MarketAgent
+  shift            String? // e.g., "Day/Night"
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime? // Soft delete
+  appointments     Appointment[]     @relation("DoctorAppointments")
+  consultations    Consultation[]    @relation("DoctorConsultations")
+  prescriptions    Prescription[]    @relation("DoctorPrescriptions")
+  diagnoses        Diagnosis[]       @relation("DoctorDiagnoses")
+  vitals           Vital[]           @relation("DoctorVitals")
+  documents        Document[]        @relation("UserDocuments")
+  auditLogs        AuditLog[]        @relation("UserAuditLogs")
+  notifications    Notification[]    @relation("UserNotifications")
+  userHospitals    UserHospital[]    @relation("UserUserHospitals")
+  departments      Department[]      @relation("DepartmentHead")
+  staffAssignments StaffAssignment[] // Multi-role
+
+  @@index([email])
+  @@index([role])
+}
+
+// Patient model (ABHA, added emergency contact/feedback/allergies/height/weight/MRN)
+model Patient {
+  id                    Int                @id @default(autoincrement())
+  abhaId                String?            @unique
+  mrn                   String?            @unique // Added MRN for medical record number
+  name                  String
+  age                   Int
+  gender                String
+  phone                 String?
+  address               String?
+  bloodGroup            String? // Added blood group
+  allergies             Json[] // Added allergies as Json list e.g., [{"type": "peanut", "severity": "high"}]
+  height                Float? // Added height for BMI
+  weight                Float? // Added weight for BMI
+  emergencyContactName  String? // Added emergency contact
+  emergencyContactPhone String? // Added emergency phone
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  deletedAt             DateTime?
+  appointments          Appointment[]
+  consultations         Consultation[]
+  prescriptions         Prescription[]
+  diagnoses             Diagnosis[]
+  vitals                Vital[]
+  documents             Document[]         @relation("PatientDocuments")
+  invoices              Invoice[]
+  insuranceClaims       InsuranceClaim[]
+  queueEntries          QueueEntry[]
+  beds                  Bed[]              @relation("PatientBeds")
+  patientHospitals      PatientHospital[] // Multi-hospital
+  patientFeedbacks      PatientFeedback[] // For RLHF
+  patientInsurances     PatientInsurance[] // Many-to-many with Insurance
+
+  @@index([abhaId])
+  @@index([mrn])
+}
+
+// Added: PatientHospital model for many-to-many
+model PatientHospital {
+  id               Int       @id @default(autoincrement())
+  patientId        Int
+  hospitalId       Int
+  registrationDate DateTime? // Added for tracking
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  patient          Patient   @relation(fields: [patientId], references: [id])
+  hospital         Hospital  @relation(fields: [hospitalId], references: [id])
+
+  @@index([patientId])
+  @@index([hospitalId])
+}
+
+// Hospital model (added inventory and wards)
+model Hospital {
+  id               Int               @id @default(autoincrement())
+  name             String
+  address          String
+  phone            String?
+  hipaaCompliant   Boolean? // For global US pivot
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  departments      Department[]
+  rooms            Room[]
+  wards            Ward[] // Added missing reverse relation
+  userHospitals    UserHospital[]
+  appointments     Appointment[]     @relation("HospitalAppointments")
+  inventory        Inventory[] // For supplies
+  patientHospitals PatientHospital[] // For relation
+
+  @@index([name])
+}
+
+// Department model (expanded enums)
+model Department {
+  id               Int               @id @default(autoincrement())
+  name             DepartmentType
+  hospitalId       Int
+  headId           Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  hospital         Hospital          @relation(fields: [hospitalId], references: [id])
+  head             User?             @relation("DepartmentHead", fields: [headId], references: [id])
+  rooms            Room[]
+  labTests         LabTest[]
+  staffAssignments StaffAssignment[] // Reciprocal for staff
+  Appointment      Appointment[]
+
+  @@index([hospitalId])
+  @@index([name])
+}
+
+// Room model (added ward link)
+model Room {
+  id           Int        @id @default(autoincrement())
+  number       String
+  departmentId Int
+  wardId       Int? // Added link to Ward
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  department   Department @relation(fields: [departmentId], references: [id])
+  ward         Ward?      @relation(fields: [wardId], references: [id])
+  beds         Bed[]
+  Hospital     Hospital?  @relation(fields: [hospitalId], references: [id])
+  hospitalId   Int?
+
+  @@index([departmentId])
+  @@index([wardId])
+}
+
+// Bed model
+model Bed {
+  id        Int       @id @default(autoincrement())
+  number    String
+  roomId    Int
+  patientId Int?
+  status    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  room      Room      @relation(fields: [roomId], references: [id])
+  patient   Patient?  @relation("PatientBeds", fields: [patientId], references: [id])
+
+  @@index([roomId])
+  @@index([status])
+}
+
+// Appointment model (added duration/status enum)
+model Appointment {
+  id            Int               @id @default(autoincrement())
+  patientId     Int
+  doctorId      Int
+  hospitalId    Int?
+  departmentId  Int?
+  date          DateTime
+  duration      Int? // Added duration in minutes
+  status        AppointmentStatus
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+  patient       Patient           @relation(fields: [patientId], references: [id])
+  doctor        User              @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  hospital      Hospital?         @relation("HospitalAppointments", fields: [hospitalId], references: [id])
+  department    Department?       @relation(fields: [departmentId], references: [id])
+  consultations Consultation[] // Added reverse relation
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([date])
+}
+
+// Consultation model
+model Consultation {
+  id               Int               @id @default(autoincrement())
+  patientId        Int
+  doctorId         Int
+  appointmentId    Int?
+  notes            String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  patient          Patient           @relation(fields: [patientId], references: [id])
+  doctor           User              @relation("DoctorConsultations", fields: [doctorId], references: [id])
+  appointment      Appointment?      @relation(fields: [appointmentId], references: [id])
+  prescriptions    Prescription[]
+  diagnoses        Diagnosis[]
+  vitals           Vital[]
+  medicalRecords   MedicalRecord[]
+  labResults       LabResult[]
+  patientFeedbacks PatientFeedback[] // Added for RLHF
+  LabOrder         LabOrder[]
+  Document         Document[]
+
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+// Prescription model
+model Prescription {
+  id             Int          @id @default(autoincrement())
+  consultationId Int
+  medicationId   Int? // Added link to Medication
+  dosage         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  doctor         User         @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+  doctorId       Int
+  medication     Medication?  @relation(fields: [medicationId], references: [id])
+  Patient        Patient?     @relation(fields: [patientId], references: [id])
+  patientId      Int?
+
+  @@index([consultationId])
+}
+
+// Diagnosis model
+model Diagnosis {
+  id             Int          @id @default(autoincrement())
+  consultationId Int
+  code           String
+  description    String
+  fhirCode       String? // Added for FHIR mapping
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  doctor         User         @relation("DoctorDiagnoses", fields: [doctorId], references: [id])
+  doctorId       Int
+  Patient        Patient?     @relation(fields: [patientId], references: [id])
+  patientId      Int?
+
+  @@index([consultationId])
+}
+
+// Vital model (added missing fields)
+model Vital {
+  id              Int          @id @default(autoincrement())
+  consultationId  Int
+  temperature     Float?
+  pulse           Int?
+  systolicBp      Int?
+  diastolicBp     Int?
+  respirationRate Int?
+  spo2            Int?
+  height          Float? // Added height
+  weight          Float? // Added weight
+  bmi             Float? // Added BMI (computed?)
+  painScale       Int? // Added pain scale (1-10)
+  bloodGlucose    Float? // Added blood glucose
+  recordedBy      Int? // Added recorded by (user ID)
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  consultation    Consultation @relation(fields: [consultationId], references: [id])
+  doctor          User         @relation("DoctorVitals", fields: [doctorId], references: [id])
+  doctorId        Int
+  encryptedData   Json? // For FL local encrypt (Kyber)
+  Patient         Patient?     @relation(fields: [patientId], references: [id])
+  patientId       Int?
+
+  @@index([consultationId])
+}
+
+// MedicalRecord model
+model MedicalRecord {
+  id             Int          @id @default(autoincrement())
+  consultationId Int
+  type           String
+  content        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+
+  @@index([consultationId])
+}
+
+// LabTest model
+model LabTest {
+  id           Int        @id @default(autoincrement())
+  name         String
+  departmentId Int
+  fhirCode     String? // Added for FHIR mapping
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  department   Department @relation(fields: [departmentId], references: [id])
+  labOrders    LabOrder[]
+
+  @@index([departmentId])
+}
+
+// LabOrder model
+model LabOrder {
+  id             Int           @id @default(autoincrement())
+  consultationId Int?
+  labTestId      Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  consultation   Consultation? @relation(fields: [consultationId], references: [id])
+  labTest        LabTest       @relation(fields: [labTestId], references: [id])
+  labResults     LabResult[]
+
+  @@index([labTestId])
+}
+
+// LabResult model
+model LabResult {
+  id             Int          @id @default(autoincrement())
+  labOrderId     Int
+  result         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  labOrder       LabOrder     @relation(fields: [labOrderId], references: [id])
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  consultationId Int
+
+  @@index([labOrderId])
+}
+
+// Invoice model
+model Invoice {
+  id              Int              @id @default(autoincrement())
+  patientId       Int
+  amount          Float
+  status          String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  patient         Patient          @relation(fields: [patientId], references: [id])
+  insuranceClaims InsuranceClaim[]
+
+  @@index([patientId])
+}
+
+// InsuranceClaim model
+model InsuranceClaim {
+  id          Int         @id @default(autoincrement())
+  patientId   Int
+  invoiceId   Int
+  insuranceId Int
+  status      ClaimStatus
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  invoice     Invoice     @relation(fields: [invoiceId], references: [id])
+  insurance   Insurance   @relation(fields: [insuranceId], references: [id])
+
+  @@index([patientId])
+  @@index([invoiceId])
+  @@index([insuranceId])
+}
+
+// Notification model
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  message   String
+  status    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  user      User      @relation("UserNotifications", fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// QueueEntry model
+model QueueEntry {
+  id        Int       @id @default(autoincrement())
+  patientId Int
+  priority  Int
+  status    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  patient   Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([patientId])
+  @@index([priority])
+}
+
+// AuditLog model (enhanced with sessionId/agentUsed)
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String
+  entityType String
+  entityId   Int?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  sessionId  String? // Added for session tracking
+  agentUsed  String? // Added for agent-specific tracking (e.g., "MakeAgent")
+  createdAt  DateTime @default(now())
+  user       User     @relation("UserAuditLogs", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Role model
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            RoleType
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  rolePermissions RolePermission[]
+  userHospitals   UserHospital[]   @relation("UserHospitalRoles")
+
+  @@index([name])
+}
+
+// Permission model
+model Permission {
+  id              Int              @id @default(autoincrement())
+  name            String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  rolePermissions RolePermission[]
+
+  @@index([name])
+}
+
+// RolePermission model
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// UserHospital model
+model UserHospital {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  hospitalId Int
+  roleId     Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  user       User      @relation("UserUserHospitals", fields: [userId], references: [id])
+  hospital   Hospital  @relation(fields: [hospitalId], references: [id])
+  role       Role      @relation("UserHospitalRoles", fields: [roleId], references: [id])
+
+  @@index([userId])
+  @@index([hospitalId])
+}
+
+// Document model (added DocumentType enum)
+model Document {
+  id             Int           @id @default(autoincrement())
+  userId         Int?
+  patientId      Int?
+  consultationId Int?
+  type           DocumentType
+  path           String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  user           User?         @relation("UserDocuments", fields: [userId], references: [id])
+  patient        Patient?      @relation("PatientDocuments", fields: [patientId], references: [id])
+  consultation   Consultation? @relation(fields: [consultationId], references: [id])
+
+  @@index([userId])
+  @@index([patientId])
+  @@index([consultationId])
+}
+
+// Added: Medication model for Prescription
+model Medication {
+  id            Int            @id @default(autoincrement())
+  name          String
+  stock         Int
+  expiryDate    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  prescriptions Prescription[] // Link to prescriptions
+
+  @@index([name])
+}
+
+// Added: Ward model (separate from Room)
+model Ward {
+  id         Int       @id @default(autoincrement())
+  name       String
+  hospitalId Int
+  capacity   Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  hospital   Hospital  @relation(fields: [hospitalId], references: [id])
+  rooms      Room[] // Wards have rooms
+
+  @@index([hospitalId])
+}
+
+// Added: Insurance model (clean many-to-many with patients)
+model Insurance {
+  id                Int                @id @default(autoincrement())
+  provider          String
+  policyNumber      String?
+  coverage          Float
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  patientInsurances PatientInsurance[] // Many-to-many with patients
+  insuranceClaims   InsuranceClaim[]
+
+  @@index([provider])
+}
+
+// Added: PatientInsurance model for many-to-many Patient-Insurance
+model PatientInsurance {
+  id          Int       @id @default(autoincrement())
+  patientId   Int
+  insuranceId Int
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  patient     Patient   @relation(fields: [patientId], references: [id])
+  insurance   Insurance @relation(fields: [insuranceId], references: [id])
+
+  @@unique([patientId, insuranceId])
+  @@index([patientId])
+  @@index([insuranceId])
+}
+
+// Added: StaffAssignment model for multi-role staff
+model StaffAssignment {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  departmentId Int
+  shift        String?
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  user         User       @relation(fields: [userId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  @@index([userId])
+  @@index([departmentId])
+}
+
+// Added: PatientFeedback model for RLHF
+model PatientFeedback {
+  id             Int           @id @default(autoincrement())
+  patientId      Int
+  consultationId Int?
+  type           FeedbackType
+  rating         Int? // 1-5 for RLHF
+  comment        String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  consultation   Consultation? @relation(fields: [consultationId], references: [id])
+
+  @@index([patientId])
+  @@index([consultationId])
+}
+
+// Added: Inventory model for MarketAgent
+model Inventory {
+  id         Int       @id @default(autoincrement())
+  hospitalId Int
+  itemName   String
+  quantity   Int
+  unitCost   Float? // For cost forecasting
+  supplier   String?
+  expiryDate DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  hospital   Hospital  @relation(fields: [hospitalId], references: [id])
+
+  @@index([hospitalId])
+  @@index([itemName])
+}
+
+// Added: AnalyticsLog model for InsightsAgent
+model AnalyticsLog {
+  id        Int       @id @default(autoincrement())
+  type      String // e.g., "outbreak_alert", "risk_score"
+  data      Json
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([type])
+  @@index([createdAt])
+}

@@ -1,0 +1,13 @@
+2025-07-05 17:55:09,851 - datasets.real_data_manager - INFO - Loaded emergency wait times: 3600 records
+2025-07-05 17:55:09,861 - models.manage_agent - INFO - Loaded wait time data: 3600 records
+2025-07-05 17:55:09,866 - datasets.real_data_manager - INFO - Loaded triage data: 1000 records
+2025-07-05 17:55:09,867 - models.manage_agent - INFO - Loaded triage data: 1000 records
+2025-07-05 17:55:09,875 - datasets.real_data_manager - INFO - Loaded resource utilization: 3600 records
+2025-07-05 17:55:09,875 - models.manage_agent - INFO - Loaded resource data: 3600 records
+2025-07-05 17:55:09,895 - models.manage_agent - INFO - Training wait time prediction model...
+2025-07-05 17:55:10,753 - models.manage_agent - INFO - Wait time model trained - RMSE: 9.60
+2025-07-05 17:55:10,760 - models.manage_agent - INFO - Training triage classification model...
+2025-07-05 17:55:10,949 - models.manage_agent - INFO - Triage model trained - Accuracy: 0.995
+2025-07-05 17:55:10,949 - models.manage_agent - INFO - Training resource optimization model...
+2025-07-05 17:55:11,470 - models.manage_agent - INFO - Resource model trained - RMSE: 0.00
+2025-07-05 17:55:11,483 - datasets.real_data_manager - INFO - Saved preprocessing artifacts to models

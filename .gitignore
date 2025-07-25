@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+ml_env/
+ml_venv/
+backend/venv/
+backend/ml_env/
+
+# Large datasets (>100MB)
+*.csv
+*.jsonl
+*.arrow
+data/
+backend/src/ml/data/
+backend/medical_training_data/
+
+# Model files
+*.pkl
+*.h5
+*.pt
+*.pth
+models/
+backend/src/ml/models/
+
+# Cache directories
+hf_cache/
+.cache/
+wandb/
+
+# Large files
+*.tar.gz
+*.zip
+*.dll
+*.so
+
+# Sensitive files
+sa-key.json
+*.key
+*.pem
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

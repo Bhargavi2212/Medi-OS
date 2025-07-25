@@ -1,0 +1,24 @@
+{
+  "name": "IntegrationAgent",
+  "description": "System Integration & API Agent",
+  "capabilities": [
+    "API endpoint management",
+    "Data format conversion",
+    "System compatibility analysis",
+    "Integration testing",
+    "Protocol optimization",
+    "Error handling and recovery"
+  ],
+  "models": [
+    "api_analyzer",
+    "compatibility_checker",
+    "format_converter",
+    "integration_tester"
+  ],
+  "data_sources": [
+    "api_specifications",
+    "system_logs",
+    "integration_tests",
+    "error_reports"
+  ]
+}

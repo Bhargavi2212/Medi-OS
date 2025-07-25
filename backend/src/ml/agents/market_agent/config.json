@@ -1,0 +1,24 @@
+{
+  "name": "MarketAgent",
+  "description": "Market Analysis & Strategy Agent",
+  "capabilities": [
+    "Market trend analysis",
+    "Competitive intelligence",
+    "Demand forecasting",
+    "Pricing strategy optimization",
+    "Market opportunity identification",
+    "Strategic recommendations"
+  ],
+  "models": [
+    "trend_analyzer",
+    "competitor_analyzer",
+    "demand_forecaster",
+    "pricing_optimizer"
+  ],
+  "data_sources": [
+    "market_data",
+    "competitor_analysis",
+    "demand_forecasts",
+    "pricing_data"
+  ]
+}

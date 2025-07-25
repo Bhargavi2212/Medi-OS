@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String   @unique
+  password_hash String
+  full_name     String
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  userHospitals UserHospital[]
+  appointments  Appointment[]
+  auditLogs     AuditLog[]
+  documents     Document[]
+}
+
+model Hospital {
+  id           Int      @id @default(autoincrement())
+  name         String
+  address      String
+  branch_code  String   @unique
+  contact_info String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  patients      Patient[]
+  userHospitals UserHospital[]
+  appointments  Appointment[]
+  documents     Document[]
+}
+
+model Patient {
+  id                  Int      @id @default(autoincrement())
+  abha_id             String?  @unique
+  first_name          String
+  last_name           String
+  dob                 DateTime
+  gender              String
+  contact_number      String
+  email               String?
+  address             String?
+  blood_group         String?
+  allergies           String[]
+  existing_conditions String[]
+  hospital_id         Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  hospital     Hospital      @relation(fields: [hospital_id], references: [id])
+  appointments Appointment[]
+  documents    Document[]
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+  userHospitals   UserHospital[]
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id            Int      @id @default(autoincrement())
+  role_id       Int
+  permission_id Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  role       Role       @relation(fields: [role_id], references: [id])
+  permission Permission @relation(fields: [permission_id], references: [id])
+
+  @@unique([role_id, permission_id])
+}
+
+model UserHospital {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  hospital_id Int
+  role_id     Int
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [user_id], references: [id])
+  hospital Hospital @relation(fields: [hospital_id], references: [id])
+  role     Role     @relation(fields: [role_id], references: [id])
+
+  @@unique([user_id, hospital_id])
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CHECKED_IN
+  IN_CONSULT
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Appointment {
+  id               Int               @id @default(autoincrement())
+  patient_id       Int
+  doctor_id        Int
+  hospital_id      Int
+  scheduled_time   DateTime
+  actual_start     DateTime?
+  actual_end       DateTime?
+  status           AppointmentStatus @default(SCHEDULED)
+  appointment_type String
+  notes            String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+
+  // Relations
+  patient  Patient  @relation(fields: [patient_id], references: [id])
+  doctor   User     @relation(fields: [doctor_id], references: [id])
+  hospital Hospital @relation(fields: [hospital_id], references: [id])
+
+  @@index([hospital_id])
+  @@index([doctor_id])
+  @@index([scheduled_time])
+}
+
+enum DocumentType {
+  MEDICAL_RECORD
+  PRESCRIPTION
+  LAB_REPORT
+  IMAGING
+  INSURANCE
+  CONSENT_FORM
+  DISCHARGE_SUMMARY
+}
+
+model Document {
+  id            Int          @id @default(autoincrement())
+  patient_id    Int?
+  hospital_id   Int
+  uploaded_by   Int
+  file_name     String
+  file_path     String
+  file_size     Int
+  mime_type     String
+  document_type DocumentType
+  description   String?
+  is_active     Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  // Relations
+  patient    Patient? @relation(fields: [patient_id], references: [id])
+  hospital   Hospital @relation(fields: [hospital_id], references: [id])
+  uploadedBy User     @relation(fields: [uploaded_by], references: [id])
+
+  @@index([patient_id])
+  @@index([document_type])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int?
+  action      String
+  entity_type String
+  entity_id   String
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([entity_type])
+  @@index([created_at])
+}

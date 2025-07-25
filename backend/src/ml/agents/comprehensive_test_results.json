@@ -1,0 +1,46 @@
+{
+  "manage_agent": {
+    "status": "\u2705 Success",
+    "wait_time_prediction": {
+      "predicted_wait_time": 145,
+      "confidence": 0.6,
+      "queue_position": 15,
+      "estimated_wait_time": "145 minutes"
+    },
+    "triage_classification": {
+      "urgency_level": 5,
+      "urgency_description": "Emergency",
+      "recommended_department": "Emergency",
+      "estimated_wait_time": "75 minutes",
+      "confidence": 0.9536021856188587
+    }
+  },
+  "make_agent": {
+    "status": "\u2705 Success",
+    "speech_recognition": 1.0,
+    "entity_extraction": 7,
+    "summarization": 20,
+    "validation": 0.7866337538421281
+  },
+  "insights_agent": {
+    "status": "\u2705 Success",
+    "total_patients": 3000,
+    "avg_length_of_stay": 2.5396666666666667,
+    "readmission_rate": 0.10636417561683026,
+    "action_items": 1
+  },
+  "integration_agent": {
+    "status": "\u2705 Success",
+    "total_endpoints": 2000,
+    "avg_response_time": 198.18157908455436,
+    "compatibility_score": 0.7546169000691203,
+    "test_result": "PASS"
+  },
+  "market_agent": {
+    "status": "\u2705 Success",
+    "total_segments": 4,
+    "avg_growth_rate": 0.0862778894486009,
+    "total_competitors": 600,
+    "demand_growth": 0.1540194270971517
+  }
+}
